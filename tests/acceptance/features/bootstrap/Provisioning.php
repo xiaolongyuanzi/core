@@ -22,7 +22,8 @@
 use Behat\Gherkin\Node\TableNode;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Message\ResponseInterface;
+use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\ResponseInterface;
 use TestHelpers\OcsApiHelper;
 use TestHelpers\SetupHelper;
 use TestHelpers\UserHelper;
@@ -360,7 +361,7 @@ trait Provisioning {
 		$options = [
 			'auth' => [$user, $password],
 		];
-		$client->send($client->createRequest('GET', $url, $options));
+		$client->send(new Request('GET', $url), $options);
 	}
 
 	/**
@@ -837,9 +838,7 @@ trait Provisioning {
 		$options = [];
 		$options['auth'] = $this->getAuthOptionForAdmin();
 
-		$this->response = $client->send(
-			$client->createRequest("PUT", $fullUrl, $options)
-		);
+		$this->response = $client->send(new Request("PUT", $fullUrl), $options);
 	}
 
 	/**
@@ -996,12 +995,10 @@ trait Provisioning {
 		$client = new Client();
 		$options = [];
 		$options['auth'] = $this->getAuthOptionForAdmin();
-		$options['body'] = [
-							'groupid' => $group
-							];
-		$this->response = $client->send(
-			$client->createRequest("POST", $fullUrl, $options)
-		);
+		$options['form_params'] = [
+			'groupid' => $group
+		];
+		$this->response = $client->send(new Request("POST", $fullUrl), $options);
 		PHPUnit_Framework_Assert::assertEquals(
 			200, $this->response->getStatusCode()
 		);
@@ -1131,7 +1128,7 @@ trait Provisioning {
 	 * @return array
 	 */
 	public function getArrayOfUsersResponded($resp) {
-		$listCheckedElements = $resp->xml()->data[0]->users[0]->element;
+		$listCheckedElements = $this->getResponseXml($resp)->data[0]->users[0]->element;
 		$extractedElementsArray = json_decode(json_encode($listCheckedElements), 1);
 		return $extractedElementsArray;
 	}
@@ -1144,7 +1141,7 @@ trait Provisioning {
 	 * @return array
 	 */
 	public function getArrayOfGroupsResponded($resp) {
-		$listCheckedElements = $resp->xml()->data[0]->groups[0]->element;
+		$listCheckedElements = $this->getResponseXml($resp)->data[0]->groups[0]->element;
 		$extractedElementsArray = json_decode(json_encode($listCheckedElements), 1);
 		return $extractedElementsArray;
 	}
@@ -1157,7 +1154,7 @@ trait Provisioning {
 	 * @return array
 	 */
 	public function getArrayOfAppsResponded($resp) {
-		$listCheckedElements = $resp->xml()->data[0]->apps[0]->element;
+		$listCheckedElements = $this->getResponseXml($resp)->data[0]->apps[0]->element;
 		$extractedElementsArray = json_decode(json_encode($listCheckedElements), 1);
 		return $extractedElementsArray;
 	}
@@ -1170,7 +1167,7 @@ trait Provisioning {
 	 * @return array
 	 */
 	public function getArrayOfSubadminsResponded($resp) {
-		$listCheckedElements = $resp->xml()->data[0]->element;
+		$listCheckedElements = $this->getResponseXml($resp)->data[0]->element;
 		$extractedElementsArray = json_decode(json_encode($listCheckedElements), 1);
 		return $extractedElementsArray;
 	}
@@ -1236,7 +1233,7 @@ trait Provisioning {
 
 		$this->response = $client->get($fullUrl, $options);
 		PHPUnit_Framework_Assert::assertEquals(
-			"false", $this->response->xml()->data[0]->enabled
+			"false", $this->getResponseXml()->data[0]->enabled
 		);
 	}
 
@@ -1255,7 +1252,7 @@ trait Provisioning {
 
 		$this->response = $client->get($fullUrl, $options);
 		PHPUnit_Framework_Assert::assertEquals(
-			"true", $this->response->xml()->data[0]->enabled
+			"true", $this->getResponseXml()->data[0]->enabled
 		);
 	}
 
@@ -1315,7 +1312,7 @@ trait Provisioning {
 		$options = [];
 		$options['auth'] = $this->getAuthOptionForAdmin();
 		$this->response = $client->get($fullUrl, $options);
-		return $this->response->xml()->data[0]->home;
+		return $this->getResponseXml()->data[0]->home;
 	}
 
 	/**
@@ -1326,7 +1323,7 @@ trait Provisioning {
 	 * @return void
 	 */
 	public function checkUserAttributes($body) {
-		$data = $this->response->xml()->data[0];
+		$data = $this->getResponseXml()->data[0];
 		$fd = $body->getRowsHash();
 		foreach ($fd as $field => $value) {
 			if ($data->$field != $value) {
