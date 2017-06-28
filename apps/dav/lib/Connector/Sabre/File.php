@@ -416,7 +416,7 @@ class File extends Node implements IFile, IFileNode {
 		}
 		/** @var \OCP\Files\Storage $storage */
 		list($storage, $internalPath) = $this->fileView->resolvePath($this->path);
-		if (is_null($storage)) {
+		if (null === $storage) {
 			return [];
 		}
 
