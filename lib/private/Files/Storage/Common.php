@@ -685,4 +685,61 @@ abstract class Common implements Storage, ILockingStorage {
 	public function setAvailability($isAvailable) {
 		$this->getStorageCache()->setAvailability($isAvailable);
 	}
+
+	public function getVersions($internalPath) {
+		// KISS implementation
+		if (!\OC_App::isEnabled('files_versions')) {
+			return [];
+		}
+		list ($uid, $filename) =  $this->convertInternalPathToGlobalPath($internalPath);
+
+		return array_map(function ($version) use ($internalPath) {
+			$version['mimetype'] = $this->getMimeType($internalPath);
+			return $version;
+		}, array_values(
+			\OCA\Files_Versions\Storage::getVersions($uid, $filename)));
+	}
+
+	/**
+	 * @param $internalPath
+	 * @return array
+	 */
+	private function convertInternalPathToGlobalPath($internalPath) {
+		$mounts = \OC::$server->getMountManager()->findByStorageId($this->getId());
+		$mount = end($mounts);
+		$p = $mount->getMountPoint() . $internalPath;
+		$p = explode('/', ltrim($p, '/'));
+		array_shift($p);
+		array_shift($p);
+		$p = implode('/', $p);
+		$o = explode('/', $mount->getMountPoint());
+		return [$o[1], $p];
+	}
+
+	public function getVersion($internalPath, $versionId) {
+		$versions = $this->getVersions($internalPath);
+		$versions = array_filter($versions, function ($version) use($versionId){
+			return $version['version'] === $versionId;
+		});
+		return array_shift($versions);
+	}
+
+	public function getContentOfVersion($internalPath, $versionId) {
+		$v = $this->getVersion($internalPath, $versionId);
+		return \OCA\Files_Versions\Storage::getContentOfVersion($v['owner'], $v['storage_location']);
+	}
+
+	public function restoreVersion($internalPath, $versionId) {
+		// KISS implementation
+		if (!\OC_App::isEnabled('files_versions')) {
+			return false;
+		}
+		$v = $this->getVersion($internalPath, $versionId);
+		return \OCA\Files_Versions\Storage::restoreVersion($v['owner'], $v['path'], $v['storage_location'], $versionId);
+	}
+
+	public function saveVersion($internalPath) {
+		// returning false here will trigger the fallback implementation
+		return false;
+	}
 }
