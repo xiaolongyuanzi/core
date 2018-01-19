@@ -114,7 +114,6 @@ class Installer {
 		if(!empty($data['pretent'])) {
 			return false;
 		}
-		OC_App::clearAppCache($info['id']);
 
 		//copy the app to the correct place
 		if(@!mkdir($basedir)) {
