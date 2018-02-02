@@ -541,9 +541,9 @@ trait BasicStructure {
 		$jsonRespondedEncoded = json_encode(json_decode($this->response->getBody(), true));
 		if ($this->runOcc(['status']) === 0) {
 			$output = explode("- ", $this->lastStdOut);
-			$version = explode(": ", $output[2]);
+			$version = explode(": ", $output[3]);
 			PHPUnit_Framework_Assert::assertEquals("version", $version[0]);
-			$versionString = explode(": ", $output[3]);
+			$versionString = explode(": ", $output[4]);
 			PHPUnit_Framework_Assert::assertEquals("versionstring", $versionString[0]);
 			$jsonExpectedDecoded['version'] = trim($version[1]);
 			$jsonExpectedDecoded['versionstring'] = trim($versionString[1]);
