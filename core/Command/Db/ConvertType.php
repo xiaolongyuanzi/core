@@ -26,9 +26,11 @@
 
 namespace OC\Core\Command\Db;
 
+use OC\DB\MDB2SchemaManager;
 use \OCP\IConfig;
 use OC\DB\Connection;
 use OC\DB\ConnectionFactory;
+use OC\DB\MigrationService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
@@ -179,7 +181,7 @@ class ConvertType extends Command {
 			$this->clearSchema($toDB, $input, $output);
 		}
 
-		$this->createSchema($toDB, $input, $output);
+		$this->createSchema($fromDB, $toDB, $input, $output);
 
 		$toTables = $this->getTables($toDB);
 		$fromTables = $this->getTables($fromDB);
@@ -203,13 +205,20 @@ class ConvertType extends Command {
 		$this->convertDB($fromDB, $toDB, $intersectingTables, $input, $output);
 	}
 
-	protected function createSchema(Connection $toDB, InputInterface $input, OutputInterface $output) {
+	protected function createSchema(Connection $fromDB, Connection $toDB, InputInterface $input, OutputInterface $output) {
 		$output->writeln('<info>Creating schema in new database</info>');
-		$schemaManager = new \OC\DB\MDB2SchemaManager($toDB);
+		$schemaManager = new MDB2SchemaManager($toDB);
 		$schemaManager->createDbFromStructure(\OC::$SERVERROOT.'/db_structure.xml');
+
+		$this->replayMigrations($fromDB, $toDB, 'core');
+
 		$apps = $input->getOption('all-apps') ? \OC_App::getAllApps() : \OC_App::getEnabledApps();
 		foreach($apps as $app) {
-			if (file_exists(\OC_App::getAppPath($app).'/appinfo/database.xml')) {
+			// Some apps has a cheat initial migration that creates schema from database.xml
+			// So the app can have database.xml and use migrations in the same time
+			if ($this->appHasMigrations($app)){
+				$this->replayMigrations($fromDB, $toDB, $app);
+			} elseif (file_exists(\OC_App::getAppPath($app).'/appinfo/database.xml')) {
 				$schemaManager->createDbFromStructure(\OC_App::getAppPath($app).'/appinfo/database.xml');
 			}
 		}
@@ -228,6 +237,22 @@ class ConvertType extends Command {
 			$connectionParams['port'] = $input->getOption('port');
 		}
 		return $this->connectionFactory->getConnection($type, $connectionParams);
+	}
+
+	protected function replayMigrations(Connection $fromDB, Connection $toDB, $app) {
+		if ($app !== 'core') {
+			\OC_App::loadApp($app);
+		}
+		$sourceMigrationService = new MigrationService($app, $fromDB);
+		$currentMigration = $sourceMigrationService->getMigration('current');
+		if ($currentMigration !== '0') {
+			$targetMigrationService = new MigrationService($app, $toDB);
+			$targetMigrationService->migrate($currentMigration);
+		}
+	}
+
+	protected function appHasMigrations($app) {
+		return is_dir(\OC_App::getAppPath($app).'/appinfo/Migrations');
 	}
 
 	protected function clearSchema(Connection $db, InputInterface $input, OutputInterface $output) {
@@ -311,6 +336,15 @@ class ConvertType extends Command {
 			// copy table rows
 			foreach($tables as $table) {
 				$output->writeln($table);
+				if ($table === $toDB->getPrefix() . 'migrations') {
+					$output->writeln(
+						sprintf(
+							'<info>Skipping "%s" as it already has migrations data</info>',
+							$table
+						)
+					);
+					return;
+				}
 				$this->copyTable($fromDB, $toDB, $table, $input, $output);
 			}
 			if ($input->getArgument('type') === 'pgsql') {
