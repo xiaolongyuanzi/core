@@ -907,7 +907,8 @@ class Share20OCS {
 		}
 
 		try {
-			$this->shareManager->updateReceivedShareState($share, $this->currentUser->getUID(), $state);
+			$share->setState($state);
+			$this->shareManager->updateShareForRecipient($share, $this->currentUser->getUID());
 		} catch (\Exception $e) {
 			$share->getNode()->unlock(ILockingProvider::LOCK_SHARED);
 			return new \OC\OCS\Result(null, 400, $e->getMessage());
