@@ -3132,14 +3132,15 @@ class Share20OCSTest extends TestCase {
 		$userShare = $this->makeReceivedUserShareForOperation();
 
 		$this->shareManager->expects($this->once())
-			->method('updateReceivedShareState')
-			->with($userShare, 'currentUser', $expectedState);
+			->method('updateShareForRecipient')
+			->with($userShare, 'currentUser');
 
 		$ocs = $this->mockFormatShare();
 		$ocs->method('formatShare')->will($this->returnArgument(0));
 		$result = $ocs->$method(123);
 
 		$this->assertContains($userShare, $result->getData(), 'result contains user share');
+		$this->assertEquals($expectedState, $userShare->getState());
 	}
 
 	/**
@@ -3188,7 +3189,7 @@ class Share20OCSTest extends TestCase {
 			->will($this->throwException(new ShareNotFound()));
 
 		$this->shareManager->expects($this->never())
-			->method('updateReceivedShareState');
+			->method('updateShareForRecipient');
 
 		$expected = new \OC\OCS\Result(null, 404, 'Wrong share ID, share doesn\'t exist');
 		$result = $this->ocs->$method(123);
@@ -3204,7 +3205,7 @@ class Share20OCSTest extends TestCase {
 		$userShare->setPermissions(0);
 
 		$this->shareManager->expects($this->never())
-			->method('updateReceivedShareState');
+			->method('updateShareForRecipient');
 
 		$expected = new \OC\OCS\Result(null, 404, 'Wrong share ID, share doesn\'t exist');
 		$result = $this->ocs->$method(123);
@@ -3219,7 +3220,7 @@ class Share20OCSTest extends TestCase {
 		$userShare = $this->makeReceivedUserShareForOperation(123);
 
 		$this->shareManager->expects($this->never())
-			->method('updateReceivedShareState');
+			->method('updateShareForRecipient');
 
 		$userShare->setShareOwner('currentUser');
 
@@ -3243,7 +3244,7 @@ class Share20OCSTest extends TestCase {
 		$userShare = $this->makeReceivedUserShareForOperation(123);
 
 		$this->shareManager->expects($this->once())
-			->method('updateReceivedShareState')
+			->method('updateShareForRecipient')
 			->will($this->throwException(new \Exception('operation error')));
 
 		$expected = new \OC\OCS\Result(null, 400, 'operation error');
