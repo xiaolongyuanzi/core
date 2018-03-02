@@ -36,6 +36,7 @@ namespace OC\User;
 use OC\Cache\CappedMemoryCache;
 use OC\Hooks\PublicEmitter;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\Events\EventEmitterTrait;
 use OCP\ILogger;
 use OCP\IUser;
@@ -160,7 +161,7 @@ class Manager extends PublicEmitter implements IUserManager {
 	 * @return \OC\User\User|null Either the user or null if the specified user does not exist
 	 */
 	public function get($uid) {
-		if (is_null($uid) || !is_string($uid)) {
+		if ($uid === null || !is_string($uid)) {
 			return null;
 		}
 		if ($this->cachedUsers->hasKey($uid)) { //check the cache first to prevent having to loop over the backends
@@ -168,12 +169,16 @@ class Manager extends PublicEmitter implements IUserManager {
 		}
 		try {
 			$account = $this->accountMapper->getByUid($uid);
-			if (is_null($account)) {
-				$this->cachedUsers->set($uid, null);
-				return null;
-			}
 			return $this->getUserObject($account);
 		} catch (DoesNotExistException $ex) {
+			$this->cachedUsers->set($uid, null);
+			return null;
+		} catch (MultipleObjectsReturnedException $ex) {
+			$this->logger->error(
+				"More than one user found for $uid, treating as not existing.",
+				['app' => __CLASS__]
+			);
+			$this->cachedUsers->set($uid, null);
 			return null;
 		}
 	}
