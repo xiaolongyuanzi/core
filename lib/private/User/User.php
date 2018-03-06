@@ -43,7 +43,6 @@ use OCP\IConfig;
 use OCP\IUserBackend;
 use OCP\IUserSession;
 use OCP\User\IChangePasswordBackend;
-use OCP\UserInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -226,6 +225,9 @@ class User implements IUser {
 		}
 		// Delete the user's keys in preferences
 		\OC::$server->getConfig()->deleteAllUserValues($this->getUID());
+
+		//Delete external storage or remove user from applicableUsers list
+		\OC::$server->getGlobalStoragesService()->deleteAllForUser($this->getUID());
 
 		// Delete user files in /data/
 		if ($homePath !== false) {
