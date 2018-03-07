@@ -38,6 +38,14 @@ use Test\TestCase;
  * @group DB
  */
 class ConvertTypeTest extends TestCase{
+	/** @var IConfig | \PHPUnit_Framework_MockObject_MockObject */
+	private $config;
+	/** @var ConnectionFactory | \PHPUnit_Framework_MockObject_MockObject */
+	private $connectionFactory;
+
+	/** @var AppManager | \PHPUnit_Framework_MockObject_MockObject */
+	private $appManager;
+
 	/** @var CommandTester */
 	private $commandTester;
 
@@ -47,6 +55,14 @@ class ConvertTypeTest extends TestCase{
 	protected function setUp() {
 		parent::setUp();
 		$this->connection = \OC::$server->getDatabaseConnection();
+		$this->config = $this->getMockBuilder(IConfig::class)
+			->getMock();
+		$this->appManager = $this->getMockBuilder(AppManager::class)
+			->disableOriginalConstructor()
+			->getMock();
+		$this->connectionFactory = $this->getMockBuilder(ConnectionFactory::class)
+			->disableOriginalConstructor()
+			->getMock();
 	}
 
 	/**
@@ -73,23 +89,45 @@ class ConvertTypeTest extends TestCase{
 		$this->commandTester->execute($params);
 	}
 
-	public function testSaveDBInfo() {
-		$config = $this->getMockBuilder(IConfig::class)
-						->getMock();
-		$connectionFactory = $this->getMockBuilder(ConnectionFactory::class)
-						->disableOriginalConstructor()
-						->getMock();
-		$appManager = $this->getMockBuilder(AppManager::class)
-						->disableOriginalConstructor()
-						->getMock();
-
+	public function testSkipMissingApps() {
 		$command = new ConvertType(
-			$config,
-			$connectionFactory,
-			$appManager
+			$this->config,
+			$this->connectionFactory,
+			$this->appManager
 		);
 
-		$config->expects($this->once())
+		$this->appManager->expects($this->any())
+			->method('getAllApps')
+			->will($this->returnValue([
+				'firstapp', 'anotherapp', 'brokenapp', 'niceapp', 'brokenapp2', 'lastapp'
+			]));
+
+		$this->appManager->expects($this->any())
+			->method('getAppPath')
+			->will(
+				$this->returnCallback(
+					function ($appId){
+						$isBroken = strpos($appId, 'broken')===0;
+						return $isBroken ? false : $appId;
+					}
+				)
+			);
+
+		$existingApps = array_values($this->invokePrivate($command, 'getExistingApps', [false]));
+		$this->assertEquals(
+			['firstapp', 'anotherapp', 'niceapp', 'lastapp'],
+			$existingApps
+		);
+	}
+
+	public function testSaveDBInfo() {
+		$command = new ConvertType(
+			$this->config,
+			$this->connectionFactory,
+			$this->appManager
+		);
+
+		$this->config->expects($this->once())
 			->method('setSystemValues');
 
 		$this->invokePrivate($command, 'saveDBInfo', []);

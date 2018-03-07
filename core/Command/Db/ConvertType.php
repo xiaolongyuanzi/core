@@ -267,7 +267,7 @@ class ConvertType extends Command {
 		$schemaManager->createDbFromStructure(\OC::$SERVERROOT.'/db_structure.xml');
 		$this->replayMigrations($fromDB, $toDB, 'core');
 
-		$apps = $input->getOption('all-apps') ? $this->appManager->getAllApps() : $this->appManager->getInstalledApps();
+		$apps = $this->getExistingApps($input->getOption('all-apps'));
 		foreach($apps as $app) {
 			// Some apps has a cheat initial migration that creates schema from database.xml
 			// So the app can have database.xml and use migrations in the same time
@@ -277,6 +277,23 @@ class ConvertType extends Command {
 				$schemaManager->createDbFromStructure($this->appManager->getAppPath($app).'/appinfo/database.xml');
 			}
 		}
+	}
+
+	/**
+	 * @param bool $enabledOnly
+	 * @return string[]
+	 */
+	protected function getExistingApps($enabledOnly) {
+		$apps = $enabledOnly ? $this->appManager->getInstalledApps() : $this->appManager->getAllApps();
+		// filter apps with missing code
+		$existingApps = array_filter(
+			$apps,
+			function ($appId) {
+				return $this->appManager->getAppPath($appId) !== false;
+			}
+		);
+
+		return $existingApps;
 	}
 
 	/**
