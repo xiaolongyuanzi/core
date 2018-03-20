@@ -42,7 +42,7 @@ class ObjectStoreStorage extends Common {
 	 */
 	private static $tmpFiles = [];
 	/**
-	 * @var \OCP\Files\ObjectStore\IObjectStore $objectStore
+	 * @var IObjectStore $objectStore
 	 */
 	protected $objectStore;
 	/**
@@ -531,9 +531,14 @@ class ObjectStoreStorage extends Common {
 		$path = $this->normalizePath($path);
 		$stat = $this->stat($path);
 
+		$url = $this->objectStore->getDirectDownload($this->getURN($stat['fileid']), $versionId, basename($path));
+		if ($url === null) {
+			return [];
+		}
+
 		return [
-			'url' => $this->objectStore->getDirectDownload($this->getURN($stat['fileid']), $versionId)
-			];
+			'url' => $url
+		];
 	}
 
 }

@@ -20,7 +20,6 @@
  *
  */
 namespace OCP\Files\ObjectStore;
-use OCP\Files\Cache\ICacheEntry;
 
 /**
  * Interface IObjectStore
@@ -34,7 +33,7 @@ interface IObjectStore {
 	 * @return string the container or bucket name where objects are stored
 	 * @since 7.0.0
 	 */
-	function getStorageId();
+	public function getStorageId();
 
 	/**
 	 * @param string $urn the unified resource name used to identify the object
@@ -42,7 +41,7 @@ interface IObjectStore {
 	 * @throws \Exception when something goes wrong, message will be logged
 	 * @since 7.0.0
 	 */
-	function readObject($urn);
+	public function readObject($urn);
 
 	/**
 	 * @param string $urn the unified resource name used to identify the object
@@ -50,7 +49,7 @@ interface IObjectStore {
 	 * @throws \Exception when something goes wrong, message will be logged
 	 * @since 7.0.0
 	 */
-	function writeObject($urn, $stream);
+	public function writeObject($urn, $stream);
 
 	/**
 	 * @param string $urn the unified resource name used to identify the object
@@ -58,12 +57,14 @@ interface IObjectStore {
 	 * @throws \Exception when something goes wrong, message will be logged
 	 * @since 7.0.0
 	 */
-	function deleteObject($urn);
+	public function deleteObject($urn);
 
 	/**
-	 * @param string $path
+	 * @param string $urn
+	 * @param string $versionId
+	 * @param string $fileName
 	 * @return string mixed
-	 * @since 10.1.0
+	 * @since 11.0.0
 	 */
-	function getDirectDownload($urn, $versionId);
+	public function getDirectDownload($urn, $versionId, $fileName);
 }
