@@ -842,7 +842,7 @@ class Share20OCSTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$calledAfterCreate = [];
-		\OC::$server->getEventDispatcher()->addListener('share.afterCreate', function (GenericEvent $event) use (&$calledAfterCreate) {
+		$this->eventDispatcher->addListener('share.afterCreate', function (GenericEvent $event) use (&$calledAfterCreate) {
 			$calledAfterCreate[] = 'share.afterCreate';
 			$calledAfterCreate[] = $event;
 		});
@@ -2873,7 +2873,7 @@ class Share20OCSTest extends TestCase {
 
 		$shareBeforeCreateCalled = false;
 
-		\OC::$server->getEventDispatcher()->addListener('share.beforeCreate', function (GenericEvent $event) use (&$shareBeforeCreateCalled) {
+		$this->eventDispatcher->addListener('share.beforeCreate', function (GenericEvent $event) use (&$shareBeforeCreateCalled) {
 			$shareBeforeCreateCalled = true;
 			$this->assertInstanceOf('Symfony\Component\EventDispatcher\GenericEvent', $event);
 			$args = $event->getArguments();
@@ -2883,7 +2883,7 @@ class Share20OCSTest extends TestCase {
 
 		$shareAfterCreateCalled = false;
 
-		\OC::$server->getEventDispatcher()->addListener('share.afterCreate', function (GenericEvent $event) use (&$shareAfterCreateCalled) {
+		$this->eventDispatcher->addListener('share.afterCreate', function (GenericEvent $event) use (&$shareAfterCreateCalled) {
 			$shareAfterCreateCalled = true;
 			$this->assertInstanceOf('Symfony\Component\EventDispatcher\GenericEvent', $event);
 			$args = $event->getArguments();
