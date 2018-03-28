@@ -71,6 +71,9 @@ class TXT implements IProvider2 {
 			$y = (int) ($index * $lineSize);
 
 			if ($canUseTTF === true) {
+				if (!file_exists($fontFile)) {
+					echo "Font not existing $fontFile";
+				}
 				imagettftext($image, $fontSize, 0, $x, $y, $textColor, $fontFile, $line);
 			} else {
 				$y -= $fontSize;
