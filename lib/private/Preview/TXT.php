@@ -58,10 +58,6 @@ class TXT implements IProvider2 {
 		imagecolorallocate($image, 255, 255, 255);
 		$textColor = imagecolorallocate($image, 0, 0, 0);
 
-		$fontFile  = __DIR__;
-		$fontFile .= '/../../../core';
-		$fontFile .= '/fonts/OpenSans-Regular.ttf';
-
 		$canUseTTF = function_exists('imagettftext');
 
 		foreach($lines as $index => $line) {
@@ -71,6 +67,10 @@ class TXT implements IProvider2 {
 			$y = (int) ($index * $lineSize);
 
 			if ($canUseTTF === true) {
+				$fontFile  = __DIR__;
+				$fontFile .= '/../../../core';
+				$fontFile .= '/fonts/OpenSans-Regular.ttf';
+				$fontFile = realpath($fontFile);
 				imagettftext($image, $fontSize, 0, $x, $y, $textColor, $fontFile, $line);
 			} else {
 				$y -= $fontSize;
