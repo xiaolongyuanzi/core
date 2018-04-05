@@ -871,14 +871,13 @@ trait Provisioning {
 	}
 
 	/**
-	 * @When /^the administrator deletes group "([^"]*)" using the API$/
 	 * @Given /^group "([^"]*)" has been deleted$/
 	 *
 	 * @param string $group
 	 *
 	 * @return void
 	 */
-	public function adminDeletesGroupUsingTheAPI($group) {
+	public function groupHasBeenDeletedUsingTheAPI($group) {
 		if ($this->groupExists($group)) {
 			$this->deleteTheGroupUsingTheAPI($group);
 		}
@@ -886,6 +885,8 @@ trait Provisioning {
 	}
 
 	/**
+	 * @When /^the administrator deletes group "([^"]*)" using the API$/
+	 *
 	 * @param string $group
 	 *
 	 * @return void
@@ -895,7 +896,8 @@ trait Provisioning {
 			$this->getBaseUrl(),
 			$group,
 			$this->getAdminUsername(),
-			$this->getAdminPassword()
+			$this->getAdminPassword(),
+			$this->apiVersion
 		);
 
 		if ($this->theGroupShouldExist($group)
@@ -917,6 +919,7 @@ trait Provisioning {
 	 * @return bool
 	 */
 	public function groupExists($group) {
+		$group = strtr($group, ['%' => '%2525', '/' => '%252F', '#' => '%23', '?' => '%3F']);
 		$fullUrl = $this->getBaseUrl() . "/ocs/v2.php/cloud/groups/$group";
 		$client = new Client();
 		$options = [];

@@ -51,27 +51,6 @@ Feature: provisioning
 		And the HTTP status code should be "200"
 		And user "brand-new-user" should exist
 
-	Scenario: Create a group
-		Given group "new-group" has been deleted
-		When the administrator sends a group creation request for group "new-group" using the API
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-		And group "new-group" should exist
-
-	Scenario: Create a group with special characters
-		Given group "España" has been deleted
-		When the administrator sends a group creation request for group "España" using the API
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-		And group "España" should exist
-
-	Scenario: Create a group named "0"
-		Given group "0" has been deleted
-		When the administrator sends a group creation request for group "0" using the API
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-		And group "0" should exist
-
 	Scenario: adding user to a group without sending the group
 		Given user "brand-new-user" has been created
 		When user "admin" sends HTTP method "POST" to API endpoint "/cloud/users/brand-new-user/groups" with body
@@ -102,20 +81,47 @@ Feature: provisioning
 		Then the OCS status code should be "100"
 		And the HTTP status code should be "200"
 		Examples:
-			| group_id  |
-			| new-group |
-			| 0         |
+			| group_id            | comment                                 |
+			| new-group           | dash                                    |
+			| the.group           | dot                                     |
+			| España              | special European characters             |
+			| नेपाली              | Unicode group name                      |
+			| 0                   | The "false" group                       |
+			| Finance (NP)        | Space and brackets                      |
+			| Admin&Finance       | Ampersand                               |
+			| admin:Pokhara@Nepal | Colon and @                             |
+			| maintenance#123     | Hash sign                               |
+			| maint+eng           | Plus sign                               |
+			| $x<=>[y*z^2]!       | Maths symbols                           |
+			| Mgmt\Middle         | Backslash                               |
+			| Mgmt/Sydney         | Slash (special escaping happens)        |
+			| Mgmt//NSW/Sydney    | Multiple slash                          |
+			| 50%pass             | Percent sign (special escaping happens) |
+			| 50%25=0             | %25 literal looks like an escaped "%"   |
+			| 50%2Eagle           | %2E literal looks like an escaped "."   |
+			| 50%2Fix             | %2F literal looks like an escaped slash |
+			| staff?group         | Question mark                           |
 
 	Scenario: getting groups of an user
 		Given user "brand-new-user" has been created
+		And group "unused-group" has been created
 		And group "new-group" has been created
 		And group "0" has been created
+		And group "Finance (NP)" has been created
+		And group "admin:Pokhara@Nepal" has been created
+		And group "Mgmt/Sydney" has been created
 		And user "brand-new-user" has been added to group "new-group"
 		And user "brand-new-user" has been added to group "0"
+		And user "brand-new-user" has been added to group "Finance (NP)"
+		And user "brand-new-user" has been added to group "admin:Pokhara@Nepal"
+		And user "brand-new-user" has been added to group "Mgmt/Sydney"
 		When user "admin" sends HTTP method "GET" to API endpoint "/cloud/users/brand-new-user/groups"
 		Then the groups returned by the API should be
-			| new-group |
-			| 0         |
+			| new-group           |
+			| 0                   |
+			| Finance (NP)        |
+			| admin:Pokhara@Nepal |
+			| Mgmt/Sydney         |
 		And the OCS status code should be "100"
 
 	Scenario: adding a user which doesn't exist to a group
@@ -125,37 +131,6 @@ Feature: provisioning
 			| groupid | new-group |
 		Then the OCS status code should be "103"
 		And the HTTP status code should be "200"
-
-	Scenario: getting an empty group
-		Given group "new-group" has been created
-		When user "admin" sends HTTP method "GET" to API endpoint "/cloud/groups/new-group"
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-
-	Scenario: getting users in a group
-		Given user "brand-new-user" has been created
-		And user "123" has been created
-		And group "new-group" has been created
-		And user "brand-new-user" has been added to group "new-group"
-		And user "123" has been added to group "new-group"
-		When user "admin" sends HTTP method "GET" to API endpoint "/cloud/groups/new-group"
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-		And the users returned by the API should be
-			| brand-new-user |
-			| 123            |
-
-	Scenario: Getting all groups
-		Given group "0" has been created
-		And group "new-group" has been created
-		And group "admin" has been created
-		And group "España" has been created
-		When user "admin" sends HTTP method "GET" to API endpoint "/cloud/groups"
-		Then the groups returned by the API should be
-			| España    |
-			| admin     |
-			| new-group |
-			| 0         |
 
 	Scenario: create a subadmin
 		Given user "brand-new-user" has been created
@@ -192,9 +167,26 @@ Feature: provisioning
 		Then the OCS status code should be "100"
 		And user "brand-new-user" should not belong to group "<group_id>"
 		Examples:
-			| group_id  |
-			| new-group |
-			| 0         |
+			| group_id            | comment                                 |
+			| new-group           | dash                                    |
+			| the.group           | dot                                     |
+			| España              | special European characters             |
+			| नेपाली              | Unicode group name                      |
+			| 0                   | The "false" group                       |
+			| Finance (NP)        | Space and brackets                      |
+			| Admin&Finance       | Ampersand                               |
+			| admin:Pokhara@Nepal | Colon and @                             |
+			| maintenance#123     | Hash sign                               |
+			| maint+eng           | Plus sign                               |
+			| $x<=>[y*z^2]!       | Maths symbols                           |
+			| Mgmt\Middle         | Backslash                               |
+			| Mgmt/Sydney         | Slash (special escaping happens)        |
+			| Mgmt//NSW/Sydney    | Multiple slash                          |
+			| 50%pass             | Percent sign (special escaping happens) |
+			| 50%25=0             | %25 literal looks like an escaped "%"   |
+			| 50%2Eagle           | %2E literal looks like an escaped "."   |
+			| 50%2Fix             | %2F literal looks like an escaped slash |
+			| staff?group         | Question mark                           |
 
 	Scenario: create a subadmin using a user which does not exist
 		Given user "not-user" has been deleted
@@ -261,20 +253,6 @@ Feature: provisioning
 		Then the OCS status code should be "100"
 		And the HTTP status code should be "200"
 		And user "brand-new-user" should not exist
-
-	Scenario: Delete a group
-		Given group "new-group" has been created
-		When user "admin" sends HTTP method "DELETE" to API endpoint "/cloud/groups/new-group"
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-		And group "new-group" should not exist
-
-	Scenario: Delete a group with special characters
-		Given group "España" has been created
-		When user "admin" sends HTTP method "DELETE" to API endpoint "/cloud/groups/España"
-		Then the OCS status code should be "100"
-		And the HTTP status code should be "200"
-		And group "España" should not exist
 
 	@no_encryption
 	Scenario: get enabled apps

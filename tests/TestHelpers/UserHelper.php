@@ -150,12 +150,13 @@ class UserHelper {
 	 * @return ResponseInterface
 	 */
 	public static function deleteGroup(
-		$baseUrl, $group, $adminUser, $adminPassword
+		$baseUrl, $group, $adminUser, $adminPassword, $apiVersion = 2
 	) {
+		$group = strtr($group, ['%' => '%25', '/' => '%2F']);
 		$group = rawurlencode($group);
 		return OcsApiHelper::sendRequest(
 			$baseUrl, $adminUser, $adminPassword,
-			"DELETE", "/cloud/groups/" . $group
+			"DELETE", "/cloud/groups/" . $group, [], $apiVersion
 		);
 	}
 
