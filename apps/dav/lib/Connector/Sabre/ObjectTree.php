@@ -31,12 +31,13 @@ use OC\Files\FileInfo;
 use OCA\DAV\Connector\Sabre\Exception\FileLocked;
 use OCA\DAV\Connector\Sabre\Exception\Forbidden;
 use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
+use OCA\DAV\BaseServer;
 use OCP\Files\ForbiddenException;
 use OCP\Files\StorageInvalidException;
 use OCP\Files\StorageNotAvailableException;
 use OCP\Lock\LockedException;
 
-class ObjectTree extends \Sabre\DAV\Tree {
+class ObjectTree extends BaseServer {
 
 	/**
 	 * @var \OC\Files\View

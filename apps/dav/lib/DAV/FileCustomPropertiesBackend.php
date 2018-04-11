@@ -71,16 +71,13 @@ class FileCustomPropertiesBackend extends AbstractCustomPropertiesBackend {
 			return;
 		}
 
-		$node = $this->getNodeForPath($path);
-		if (is_null($node)) {
-			return;
+		$fileId = $this->tree->getDeletedItemFileId($path);
+		if ($fileId !== false) {
+			$statement = $this->connection->prepare(self::DELETE_BY_ID_STMT);
+			$statement->execute([$fileId]);
+			$this->offsetUnset($fileId);
+			$statement->closeCursor();
 		}
-
-		$fileId = $node->getId();
-		$statement = $this->connection->prepare(self::DELETE_BY_ID_STMT);
-		$statement->execute([$fileId]);
-		$this->offsetUnset($fileId);
-		$statement->closeCursor();
 	}
 
 	/**
