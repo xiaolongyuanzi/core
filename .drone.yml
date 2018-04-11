@@ -128,6 +128,17 @@ pipeline:
       matrix:
         INSTALL_SERVER: true
 
+  install-notifications-app:
+    image: plugins/git
+    pull: true
+    path: /drone/src/apps/
+    remote: https://github.com/owncloud/notifications.git
+    environment:
+      - APPS_TO_ENABLE=notifications
+    when:
+      matrix:
+        NEED_NOTIFICATIONS_APP: true
+
   fix-permissions:
     image: owncloudci/php:${PHP_VERSION}
     pull: true
@@ -495,6 +506,16 @@ matrix:
       INSTALL_SERVER: true
       CHOWN_SERVER: true
       OWNCLOUD_LOG: true
+
+    - PHP_VERSION: 7.1
+      TEST_SUITE: api
+      BEHAT_SUITE: apiSharingNotifications
+      DB_TYPE: mariadb
+      USE_SERVER: true
+      INSTALL_SERVER: true
+      CHOWN_SERVER: true
+      OWNCLOUD_LOG: true
+      NEED_NOTIFICATIONS_APP: true
 
   # UI Acceptance tests
     - PHP_VERSION: 7.1
