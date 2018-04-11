@@ -72,9 +72,6 @@ class Share20OCS {
 	 */
 	private $additionalInfoField;
 
-	/** @var \Symfony\Component\EventDispatcher\EventDispatcherInterface  */
-	private $eventDispatcher;
-
 	/**
 	 * Share20OCS constructor.
 	 *
@@ -87,7 +84,6 @@ class Share20OCS {
 	 * @param IUser $currentUser
 	 * @param IL10N $l10n
 	 * @param IConfig $config
-	 * @param EventDispatcher $eventDispatcher
 	 */
 	public function __construct(
 			IManager $shareManager,
@@ -98,8 +94,7 @@ class Share20OCS {
 			IURLGenerator $urlGenerator,
 			IUser $currentUser,
 			IL10N $l10n,
-			IConfig $config,
-			EventDispatcher $eventDispatcher
+			IConfig $config
 	) {
 		$this->shareManager = $shareManager;
 		$this->userManager = $userManager;
@@ -111,7 +106,6 @@ class Share20OCS {
 		$this->l = $l10n;
 		$this->config = $config;
 		$this->additionalInfoField = $this->config->getAppValue('core', 'user_additional_info_field', '');
-		$this->eventDispatcher = $eventDispatcher;
 	}
 
 	/**
@@ -298,7 +292,6 @@ class Share20OCS {
 	 * @return \OC\OCS\Result
 	 */
 	public function createShare() {
-		$beforeEvent = new GenericEvent(null);
 		$share = $this->shareManager->newShare();
 
 		if (!$this->shareManager->shareApiEnabled()) {
@@ -314,12 +307,6 @@ class Share20OCS {
 		}
 
 		$userFolder = $this->rootFolder->getUserFolder($this->currentUser->getUID());
-		$beforeEvent->setArgument('userFolder', $userFolder);
-		$beforeEvent->setArgument('run', true);
-
-		if ($beforeEvent->getArgument('run') === false) {
-			return new \OC\OCS\Result(null, 403, $this->l->t('No permission to create share'));
-		}
 
 		try {
 			$path = $userFolder->get($path);
@@ -496,12 +483,6 @@ class Share20OCS {
 		$share->setShareType($shareType);
 		$share->setSharedBy($this->currentUser->getUID());
 
-
-		$beforeEvent->setArgument('share', $this->formatShare($share));
-		$beforeEvent->setArgument('shareObject', $share);
-
-		$this->eventDispatcher->dispatch('share.beforeCreate', $beforeEvent);
-
 		try {
 			$share = $this->shareManager->createShare($share);
 		} catch (GenericShareException $e) {
@@ -514,15 +495,9 @@ class Share20OCS {
 		}
 
 
-
 		$share->getNode()->unlock(\OCP\Lock\ILockingProvider::LOCK_SHARED);
 
 		$formattedShareAfterCreate = $this->formatShare($share);
-		$afterEvent = new GenericEvent(null, []);
-		$afterEvent->setArgument('share', $formattedShareAfterCreate);
-		$afterEvent->setArgument('shareObject', $share);
-		$afterEvent->setArgument('result', 'success');
-		$this->eventDispatcher->dispatch('share.afterCreate', $afterEvent);
 
 		return new \OC\OCS\Result($formattedShareAfterCreate);
 	}

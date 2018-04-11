@@ -2832,69 +2832,6 @@ class Share20OCSTest extends TestCase {
 		$this->assertEquals($expectedInfo, $result['share_with_additional_info']);
 	}
 
-	public function testBeforeAndAfterCreateHooksAreCalled() {
-		$ocs = $this->mockFormatShare();
-		$share = $this->newShare();
-		$this->shareManager->method('newShare')->willReturn($share);
-
-		$storage = $this->createMock('OCP\Files\Storage');
-		$storage->method('instanceOfStorage')
-			->with('OCA\Files_Sharing\External\Storage')
-			->willReturn(false);
-		$path = $this->createMock('\OCP\Files\File');
-		$path->method('getStorage')
-			->willReturn($storage);
-
-		$userFolder = $this->createMock('\OCP\Files\Folder');
-		$node = $this->createMock('\OCP\Files\Node');
-		$node->method('getStorage')
-			->willReturn($storage);
-		$userFolder->method('get')->willReturn($node);
-		$this->request
-			->method('getParam')
-			->will($this->returnValueMap([
-				['path', null, 'valid-path'],
-				['permissions', null, \OCP\Constants::PERMISSION_ALL],
-				['shareType', $this->any(), Share::SHARE_TYPE_USER],
-				['shareWith', null, 'validUser'],
-			]));
-
-		$this->rootFolder
-			->method('getUserFolder')
-			->with('currentUser')
-			->willReturn($userFolder);
-		$this->userManager->method('userExists')
-			->withAnyParameters()
-			->willReturn(true);
-		$this->shareManager
-			->method('createShare')
-			->willReturn($share);
-
-		$shareBeforeCreateCalled = false;
-
-		$this->eventDispatcher->addListener('share.beforeCreate', function (GenericEvent $event) use (&$shareBeforeCreateCalled) {
-			$shareBeforeCreateCalled = true;
-			$this->assertInstanceOf('Symfony\Component\EventDispatcher\GenericEvent', $event);
-			$args = $event->getArguments();
-			$this->assertArrayHasKey('share', $args);
-			$this->assertArrayHasKey('run', $args);
-		});
-
-		$shareAfterCreateCalled = false;
-
-		$this->eventDispatcher->addListener('share.afterCreate', function (GenericEvent $event) use (&$shareAfterCreateCalled) {
-			$shareAfterCreateCalled = true;
-			$this->assertInstanceOf('Symfony\Component\EventDispatcher\GenericEvent', $event);
-			$args = $event->getArguments();
-			$this->assertArrayHasKey('share', $args);
-		});
-
-		$ocs->createShare();
-
-		$this->assertTrue($shareBeforeCreateCalled, 'share.beforeCreate not called');
-		$this->assertTrue($shareAfterCreateCalled, 'share.afterCreate not called');
-	}
-
 	public function providesGetSharesAll() {
 		return [
 			[
