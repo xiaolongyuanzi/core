@@ -694,6 +694,13 @@
 			this._selectionSummary.clear();
 			if (checked) {
 				for (var i = 0; i < this.files.length; i++) {
+					/*
+					If the selection is from trashbin we need to do update the
+					name of the files.
+					 */
+					if (this.$fileList.selector === "#app-content-trashbin #fileList") {
+						this.files[i].name = this.files[i].name + '.d' + this.files[i].mtime/1000;
+					}
 					var fileData = this.files[i];
 					this._selectedFiles[fileData.id] = fileData;
 					this._selectionSummary.add(fileData);
