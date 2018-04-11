@@ -923,7 +923,7 @@ class WebUIFilesContext extends RawMinkContext implements Context {
 	}
 
 	/**
-	 * @Then /^the (?:file|folder) ((?:'[^']*')|(?:"[^"]*")) should (not|)\s?be listed\s?(?:in the |)(all-files page|trashbin|favorites page|shared-with-you page|)\s?(?:folder ((?:'[^']*')|(?:"[^"]*")))? on the webUI$/
+	 * @Then /^the (?:file|folder) ((?:'[^']*')|(?:"[^"]*")) should (not|)\s?be listed\s?(?:in the |)(files page|trashbin|favorites page|shared-with-you page|)\s?(?:folder ((?:'[^']*')|(?:"[^"]*")))? on the webUI$/
 	 *
 	 * @param string $name enclosed in single or double quotes
 	 * @param string $shouldOrNot
@@ -963,7 +963,7 @@ class WebUIFilesContext extends RawMinkContext implements Context {
 		$should = ($shouldOrNot !== "not");
 		$exceptionMessage = null;
 		switch ($typeOfFilesPage) {
-			case "all-files page":
+			case "files page":
 				$this->theUserBrowsesToTheFilesPage();
 				break;
 			case "trashbin":
@@ -975,9 +975,6 @@ class WebUIFilesContext extends RawMinkContext implements Context {
 			case "shared-with-you page":
 				$this->theUserBrowsesToTheSharedWithYouPage();
 				break;
-		}
-		if ($typeOfFilesPage === "files page") {
-			$this->theUserBrowsesToTheFilesPage();
 		}
 		$pageObject = $this->getCurrentPageObject();
 		$pageObject->waitTillPageIsLoaded($this->getSession());

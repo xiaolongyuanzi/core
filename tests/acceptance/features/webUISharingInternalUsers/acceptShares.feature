@@ -70,8 +70,8 @@ So that ....
 		And the file "testimage.jpg" should be in state "Pending" in the shared-with-you page on the webUI
 		And the folder "simple-folder (2)" should be in state "" in the shared-with-you page on the webUI after a page reload
 		And the file "testimage.jpg" should be in state "Pending" in the shared-with-you page on the webUI after a page reload
-		And the folder "simple-folder (2)" should be listed in the all-files page on the webUI
-		And the file "testimage (2).jpg" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should be listed in the files page on the webUI
+		And the file "testimage (2).jpg" should not be listed in the files page on the webUI
 
 	Scenario: decline an offered (pending) share
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -81,8 +81,8 @@ So that ....
 		When the user declines the share "simple-folder" offered by user "User Two" using the webUI
 		Then the folder "simple-folder" should be in state "Declined" in the shared-with-you page on the webUI
 		And the file "testimage.jpg" should be in state "Pending" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should not be listed in the all-files page on the webUI
-		And the file "testimage (2).jpg" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should not be listed in the files page on the webUI
+		And the file "testimage (2).jpg" should not be listed in the files page on the webUI
 
 	Scenario: decline an accepted share (with page-reload in between)
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -94,8 +94,8 @@ So that ....
 		And the user declines the share "simple-folder (2)" offered by user "User Two" using the webUI
 		Then the folder "simple-folder (2)" should be in state "Declined" in the shared-with-you page on the webUI
 		And the file "testimage.jpg" should be in state "Pending" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should not be listed in the all-files page on the webUI
-		And the file "testimage (2).jpg" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should not be listed in the files page on the webUI
+		And the file "testimage (2).jpg" should not be listed in the files page on the webUI
 
 	Scenario: decline an accepted share (without any page-reload in between)
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -106,8 +106,8 @@ So that ....
 		And the user declines the share "simple-folder (2)" offered by user "User Two" using the webUI
 		Then the folder "simple-folder (2)" should be in state "Declined" in the shared-with-you page on the webUI
 		And the file "testimage.jpg" should be in state "Pending" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should not be listed in the all-files page on the webUI
-		And the file "testimage (2).jpg" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should not be listed in the files page on the webUI
+		And the file "testimage (2).jpg" should not be listed in the files page on the webUI
 
 	Scenario: accept a previously declined share
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -118,8 +118,8 @@ So that ....
 		When the user accepts the share "simple-folder" offered by user "User Two" using the webUI
 		Then the folder "simple-folder (2)" should be in state "" in the shared-with-you page on the webUI
 		And the file "testimage.jpg" should be in state "Pending" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should be listed in the all-files page on the webUI
-		And the file "testimage (2).jpg" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should be listed in the files page on the webUI
+		And the file "testimage (2).jpg" should not be listed in the files page on the webUI
 
 	Scenario: accept a share that you received as user and as group member
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -129,7 +129,7 @@ So that ....
 		When the user accepts the share "simple-folder" offered by user "User Two" using the webUI
 		And the user reloads the current page of the webUI
 		Then the folder "simple-folder (2)" should be in state "" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should be listed in the files page on the webUI
 
 	Scenario: reject a share that you received as user and as group member
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -139,7 +139,7 @@ So that ....
 		When the user declines the share "simple-folder" offered by user "User Two" using the webUI
 		And the user reloads the current page of the webUI
 		Then the folder "simple-folder" should be in state "Declined" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should not be listed in the files page on the webUI
 
 	Scenario: reshare a share that you received to a group that you are member of
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -151,7 +151,7 @@ So that ....
 		And the user declines the share "simple-folder (2)" offered by user "User Two" using the webUI
 		And the user reloads the current page of the webUI
 		Then the folder "simple-folder (2)" should be in state "Declined" in the shared-with-you page on the webUI
-		And the folder "simple-folder (2)" should not be listed in the all-files page on the webUI
+		And the folder "simple-folder (2)" should not be listed in the files page on the webUI
 
 	Scenario: unshare an accepted share on the "All files" page
 		Given the setting "Automatically accept new incoming local user shares" in the section "Sharing" has been disabled
@@ -162,8 +162,8 @@ So that ....
 		And the user has logged in with username "user1" and password "1234" using the webUI
 		When the user unshares the folder "simple-folder (2)" using the webUI
 		And the user unshares the file "testimage (2).jpg" using the webUI
-		Then the folder "simple-folder (2)" should not be listed in the all-files page on the webUI
-		And the file "testimage (2).jpg" should not be listed in the all-files page on the webUI 
+		Then the folder "simple-folder (2)" should not be listed in the files page on the webUI
+		And the file "testimage (2).jpg" should not be listed in the files page on the webUI 
 		And the folder "simple-folder (2)" should be in state "Declined" in the shared-with-you page on the webUI
 		And the file "testimage (2).jpg" should be in state "Declined" in the shared-with-you page on the webUI
 
@@ -231,4 +231,4 @@ So that ....
 		When the user unshares the folder "simple-folder-renamed" using the webUI
 		And the user accepts the share "simple-folder-renamed" offered by user "User Two" using the webUI
 		Then the folder "simple-folder-renamed" should be in state "" in the shared-with-you page on the webUI
-		And the folder "simple-folder-renamed" should be listed in the all-files page on the webUI
+		And the folder "simple-folder-renamed" should be listed in the files page on the webUI
