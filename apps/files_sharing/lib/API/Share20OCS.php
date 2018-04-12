@@ -866,6 +866,11 @@ class Share20OCS {
 			return new \OC\OCS\Result(null, 404, $this->l->t('Wrong share ID, share doesn\'t exist'));
 		}
 
+		if ($share->getState() === $state) {
+			// if there are no changes in the state, just return the share as if the change was successful
+			return new \OC\OCS\Result([$this->formatShare($share, true)]);
+		}
+
 		$node = $share->getNode();
 		$node->lock(\OCP\Lock\ILockingProvider::LOCK_SHARED);
 
