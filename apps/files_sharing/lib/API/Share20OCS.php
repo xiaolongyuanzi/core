@@ -37,8 +37,7 @@ use OCP\Share\Exceptions\GenericShareException;
 use OCP\Share\Exceptions\ShareNotFound;
 use OCP\Share\IManager;
 use OCP\Share\IShare;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use OCA\Files_Sharing\Service\NotificationPublisher;
 use OCA\Files_Sharing\Helper;
 
 /**
@@ -66,6 +65,8 @@ class Share20OCS {
 	private $l;
 	/** @var IConfig */
 	private $config;
+	/** @var NotificationPublisher */
+	private $notificationPublisher;
 
 	/**
 	 * @var string
@@ -84,6 +85,7 @@ class Share20OCS {
 	 * @param IUser $currentUser
 	 * @param IL10N $l10n
 	 * @param IConfig $config
+	 * @param NotificationPublisher $notificationPublisher
 	 */
 	public function __construct(
 			IManager $shareManager,
@@ -94,7 +96,8 @@ class Share20OCS {
 			IURLGenerator $urlGenerator,
 			IUser $currentUser,
 			IL10N $l10n,
-			IConfig $config
+			IConfig $config,
+			NotificationPublisher $notificationPublisher
 	) {
 		$this->shareManager = $shareManager;
 		$this->userManager = $userManager;
@@ -105,6 +108,7 @@ class Share20OCS {
 		$this->currentUser = $currentUser;
 		$this->l = $l10n;
 		$this->config = $config;
+		$this->notificationPublisher = $notificationPublisher;
 		$this->additionalInfoField = $this->config->getAppValue('core', 'user_additional_info_field', '');
 	}
 
@@ -917,6 +921,8 @@ class Share20OCS {
 		// FIXME: trigger mount for user to make sure the new node is mounted already
 		// before formatShare resolves it
 		$this->rootFolder->getUserFolder($this->currentUser->getUID());
+
+		$this->notificationPublisher->discardNotificationForUser($share, $this->currentUser->getUID());
 
 		return new \OC\OCS\Result([$this->formatShare($share, true)]);
 	}

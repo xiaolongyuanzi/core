@@ -125,10 +125,26 @@ class NotificationPublisher {
 			$notification = $this->notificationManager->createNotification();
 			$notification->setApp('files_sharing')
 				->setUser($userId)
-				->setObject('local_share', $share->getId());
+				->setObject('local_share', $share->getFullId());
 
 			$this->notificationManager->markProcessed($notification);
 		}
 	}
 
+	/**
+	 * Discards the notification related to the given share for the specific user.
+	 * This is useful to remove the notification when the user has seen or processed it
+	 *
+	 * @param IShare $share share
+	 * @param string $userId the user id (who should have been received the notification) that will
+	 * have his notification discarded.
+	 */
+	public function discardNotificationForUser(IShare $share, $userId) {
+		$notification = $this->notificationManager->createNotification();
+		$notification->setApp('files_sharing')
+			->setUser($userId)
+			->setObject('local_share', $share->getFullId());
+
+		$this->notificationManager->markProcessed($notification);
+	}
 }
