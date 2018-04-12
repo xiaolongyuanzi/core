@@ -50,6 +50,10 @@ class Checksum extends Wrapper {
 	/** @var CappedMemoryCache Key is path, value is array of checksums */
 	private static $checksums;
 
+	private $isReading;
+
+	private $isWriting;
+
 
 	public function __construct(array $algos = ['sha1', 'md5', 'adler32']) {
 
@@ -60,6 +64,11 @@ class Checksum extends Wrapper {
 		if (!self::$checksums) {
 			self::$checksums = new CappedMemoryCache();
 		}
+
+		$this->isReading = false;
+		$this->isWriting = false;
+
+
 	}
 
 
@@ -111,7 +120,10 @@ class Checksum extends Wrapper {
 	 */
 	public function stream_read($count) {
 		$data = parent::stream_read($count);
-		$this->updateHashingContexts($data);
+		if (!$this->isWriting) {
+			$this->isReading = true;
+			$this->updateHashingContexts($data);
+		}
 
 		return $data;
 	}
@@ -121,7 +133,10 @@ class Checksum extends Wrapper {
 	 * @return int
 	 */
 	public function stream_write($data) {
-		$this->updateHashingContexts($data);
+		if (!$this->isReading) {
+			$this->isWriting = true;
+			$this->updateHashingContexts($data);
+		}
 
 		return parent::stream_write($data);
 	}
@@ -174,6 +189,9 @@ class Checksum extends Wrapper {
 		if ($originalFilePath !== $currentPath){
 			self::$checksums[$originalFilePath] = $checksum;
 		}
+
+		$this->isReading = false;
+		$this->isWriting = false;
 
 		return parent::stream_close();
 	}
