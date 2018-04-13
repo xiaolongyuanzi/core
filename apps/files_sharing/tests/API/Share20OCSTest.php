@@ -25,6 +25,7 @@
 namespace OCA\Files_Sharing\Tests\API;
 
 use OCA\Files_Sharing\API\Share20OCS;
+use OCA\Files_Sharing\Service\NotificationPublisher;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\IConfig;
@@ -36,9 +37,6 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Lock\LockedException;
 use OCP\Share;
-use Symfony\Component\EventDispatcher\GenericEvent;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Test\TestCase;
 use OCP\Files\Folder;
 use OCP\Files\Node;
@@ -79,8 +77,8 @@ class Share20OCSTest extends TestCase {
 	/** @var IL10N */
 	private $l;
 
-	/** @var EventDispatcherInterface */
-	private $eventDispatcher;
+	/** @var NotificationPublisher */
+	private $notificationPublisher;
 
 	protected function setUp() {
 		$this->shareManager = $this->getMockBuilder('OCP\Share\IManager')
@@ -113,7 +111,7 @@ class Share20OCSTest extends TestCase {
 				['core', 'shareapi_auto_accept_share', 'yes', 'yes'],
 			]));
 
-		$this->eventDispatcher = new EventDispatcher();
+		$this->notificationPublisher = $this->createMock(NotificationPublisher::class);
 
 		$this->ocs = new Share20OCS(
 			$this->shareManager,
@@ -125,7 +123,7 @@ class Share20OCSTest extends TestCase {
 			$this->currentUser,
 			$this->l,
 			$this->config,
-			$this->eventDispatcher
+			$this->notificationPublisher
 		);
 	}
 
@@ -146,7 +144,7 @@ class Share20OCSTest extends TestCase {
 				$this->currentUser,
 				$this->l,
 				$this->config,
-				$this->eventDispatcher,
+				$this->notificationPublisher,
 			])->setMethods(['formatShare'])
 			->getMock();
 	}
@@ -455,7 +453,7 @@ class Share20OCSTest extends TestCase {
 					$this->currentUser,
 					$this->l,
 					$this->config,
-					$this->eventDispatcher,
+					$this->notificationPublisher,
 				])->setMethods(['canAccessShare'])
 				->getMock();
 
@@ -839,12 +837,6 @@ class Share20OCSTest extends TestCase {
 					$share->getSharedBy() === 'currentUser';
 			}))
 			->will($this->returnArgument(0));
-
-		$calledAfterCreate = [];
-		$this->eventDispatcher->addListener('share.afterCreate', function (GenericEvent $event) use (&$calledAfterCreate) {
-			$calledAfterCreate[] = 'share.afterCreate';
-			$calledAfterCreate[] = $event;
-		});
 
 		$expected = new \OC\OCS\Result();
 		$result = $ocs->createShare();
@@ -2707,7 +2699,7 @@ class Share20OCSTest extends TestCase {
 			$this->currentUser,
 			$this->l,
 			$this->config,
-			$this->eventDispatcher
+			$this->notificationPublisher
 		);
 	}
 
@@ -2799,7 +2791,7 @@ class Share20OCSTest extends TestCase {
 			$this->currentUser,
 			$this->l,
 			$config,
-			$this->eventDispatcher
+			$this->notificationPublisher
 		);
 
 		list($file,) = $this->getMockFileFolder();

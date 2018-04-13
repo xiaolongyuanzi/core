@@ -32,6 +32,7 @@ use OCP\Constants;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\Share;
+use OCA\Files_Sharing\Service\NotificationPublisher;
 
 /**
  * Class ApiTest
@@ -123,7 +124,8 @@ class ApiTest extends TestCase {
 			\OC::$server->getURLGenerator(),
 			$currentUser,
 			$l,
-			\OC::$server->getConfig()
+			\OC::$server->getConfig(),
+			\OC::$server->getAppContainer('files_sharing')->query(NotificationPublisher::class)
 		);
 	}
 
