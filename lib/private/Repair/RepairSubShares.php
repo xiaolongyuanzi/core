@@ -63,7 +63,6 @@ class RepairSubShares implements IRepairStep {
 			->from('share')
 			->where($builder->expr()->eq('share_type', $builder->createNamedParameter(2)))
 			->groupBy('parent')
-			->addGroupBy('id')
 			->addGroupBy('share_with')
 			->having('count(*) > 1')->setMaxResults(1000);
 

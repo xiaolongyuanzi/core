@@ -70,6 +70,123 @@ class RepairSubSharesTest extends TestCase {
 	}
 
 	/**
+	 * A test case to verify steps repair does address the simple step mentioned
+	 * at https://github.com/owncloud/core/issues/27990#issuecomment-357899190
+	 */
+
+	public function testRemoveDuplicateSubShare() {
+		$qb = $this->connection->getQueryBuilder();
+		/*
+		 * Create 3 users: user1, user2 and user3.
+		 */
+		$userName = "user";
+		$groupName = "group1";
+		$time = 1523892;
+		\OC::$server->getGroupManager()->createGroup($groupName);
+		for($userCount = 1; $userCount <= 3; $userCount++) {
+			$user = $this->createUser($userName.$userCount);
+			\OC::$server->getGroupManager()->get($groupName)->addUser($user);
+		}
+
+		$usersinsharetable = ['admin', 'user1', 'user2'];
+		foreach ($usersinsharetable as $user) {
+			if ($user === 'admin') {
+				$qb->insert('share')
+					->values([
+						'share_type' => $qb->expr()->literal('1'),
+						'share_with' => $qb->expr()->literal($groupName),
+						'uid_owner' => $qb->expr()->literal('admin'),
+						'uid_initiator' => $qb->expr()->literal('admin'),
+						'item_type' => $qb->expr()->literal('folder'),
+						'item_source' => $qb->expr()->literal(23),
+						'file_source' => $qb->expr()->literal(23),
+						'file_target' => $qb->expr()->literal('/test'),
+						'permissions' => $qb->expr()->literal(31),
+						'stime' => $qb->expr()->literal($time),
+						'mail_send' => $qb->expr()->literal('0'),
+						'accepted' => $qb->expr()->literal('0')
+					])
+					->execute();
+			} elseif ($user === 'user1') {
+				$qb->insert('share')
+					->values([
+						'share_type' => $qb->expr()->literal('2'),
+						'share_with' => $qb->expr()->literal($user),
+						'uid_owner' => $qb->expr()->literal('admin'),
+						'uid_initiator' => $qb->expr()->literal('admin'),
+						'parent' => $qb->expr()->literal('1'),
+						'item_type' => $qb->expr()->literal('folder'),
+						'item_source' => $qb->expr()->literal(23),
+						'file_source' => $qb->expr()->literal(23),
+						'file_target' => $qb->expr()->literal('/test'),
+						'permissions' => $qb->expr()->literal(31),
+						'stime' => $qb->expr()->literal($time),
+						'mail_send' => $qb->expr()->literal('0'),
+						'accepted' => $qb->expr()->literal('0')
+					])
+					->execute();
+			} else {
+				for ($i = 0; $i < 2; $i++) {
+					$qb->insert('share')
+						->values([
+							'share_type' => $qb->expr()->literal('2'),
+							'share_with' => $qb->expr()->literal($user),
+							'uid_owner' => $qb->expr()->literal('admin'),
+							'uid_initiator' => $qb->expr()->literal('admin'),
+							'parent' => $qb->expr()->literal('1'),
+							'item_type' => $qb->expr()->literal('folder'),
+							'item_source' => $qb->expr()->literal(23),
+							'file_source' => $qb->expr()->literal(23),
+							'file_target' => $qb->expr()->literal('/test_mine'),
+							'permissions' => $qb->expr()->literal(31),
+							'stime' => $qb->expr()->literal($time),
+							'mail_send' => $qb->expr()->literal('0'),
+							'accepted' => $qb->expr()->literal('0')
+						])
+						->execute();
+				}
+			}
+		}
+
+		$outputMock = $this->createMock(IOutput::class);
+		$this->repair->run($outputMock);
+
+		$qb = $this->connection->getQueryBuilder();
+		$qb->select('id', 'parent', $qb->createFunction('count(*)'))
+			->from('share')
+			->where($qb->expr()->eq('share_type', $qb->createNamedParameter(2)))
+			->groupBy('parent')
+			->addGroupBy('share_with')
+			->having('count(*) > 1')->setMaxResults(1000);
+
+		$results = $qb->execute()->fetchAll();
+		$this->assertCount(0, $results);
+
+		//There should be only one entry for share_with as 'user2'
+		$qb = $this->connection->getQueryBuilder();
+		$qb->select($qb->createFunction('count(*)'))
+			->from('share')
+			->where($qb->expr()->eq('share_with', $qb->createNamedParameter('user2')))
+			->setMaxResults(1000);
+		$results = $qb->execute()->fetchAll();
+		$this->assertCount(1, $results);
+		$qb = $this->connection->getQueryBuilder();
+		$qb->select('share_with')
+			->from('share');
+		$results = $qb->execute()->fetchAll();
+		//Only 3 entries should be there
+		$this->assertCount(3, $results);
+		$userArray = [
+			array('share_with' => 'group1'),
+			array('share_with' => 'user1'),
+			array('share_with' => 'user2')
+		];
+		foreach ($userArray as $sharewith) {
+			$this->assertTrue(in_array($sharewith, $results));
+		}
+	}
+
+	/**
 	 * This is a very basic test
 	 * This test would populate DB with data
 	 * and later, remove the duplicates to test
@@ -83,7 +200,7 @@ class RepairSubSharesTest extends TestCase {
 		$userName = "user";
 		$groupName = "group";
 		$folderName = "/test";
-		$time = time();
+		$time = 1523892;
 		$groupCount = 1;
 		$totalGroups = 3;
 		$parent = 1;
@@ -117,7 +234,7 @@ class RepairSubSharesTest extends TestCase {
 			 */
 			if (($userCount % $totalGroups) === 0) {
 				$groupCount++;
-				$time = time();
+				$time += 1;
 			}
 
 			/**
@@ -136,7 +253,6 @@ class RepairSubSharesTest extends TestCase {
 			->from('share')
 			->where($qb->expr()->eq('share_type', $qb->createNamedParameter(2)))
 			->groupBy('parent')
-			->addGroupBy('id')
 			->addGroupBy('share_with')
 			->having('count(*) > 1')->setMaxResults(1000);
 
@@ -151,7 +267,7 @@ class RepairSubSharesTest extends TestCase {
 	public function testLargeDuplicateShareRows() {
 		$qb = $this->connection->getQueryBuilder();
 		$userName = "user";
-		$time = time();
+		$time = 15238923;
 		$groupCount = 0;
 		$folderName = "/test";
 		$maxUsersPerGroup = 1000;
@@ -190,7 +306,6 @@ class RepairSubSharesTest extends TestCase {
 			->from('share')
 			->where($qb->expr()->eq('share_type', $qb->createNamedParameter(2)))
 			->groupBy('parent')
-			->addGroupBy('id')
 			->addGroupBy('share_with')
 			->having('count(*) > 1')->setMaxResults(1000);
 
