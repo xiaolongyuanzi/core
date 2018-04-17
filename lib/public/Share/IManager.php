@@ -112,6 +112,15 @@ interface IManager {
 	 */
 	public function getSharesBy($userId, $shareType, $path = null, $reshares = false, $limit = 50, $offset = 0);
 
+	/**
+	 * Transfer shares from oldOwner to newOwner. Both old and new owners are uid
+	 *
+	 * @param IShare $share
+	 * @param string $oldOwner
+	 * @param string $newOwner
+	 * @param array $args
+	 */
+	public function transferShares(IShare $share, $oldOwner, $newOwner, $args = []);
 
 	/**
 	 * Get shares shared with $userId for specified share types.

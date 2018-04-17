@@ -44,6 +44,7 @@ use OCP\Share\Exceptions\GenericShareException;
 use OCP\Share\Exceptions\ShareNotFound;
 use OCP\Share\IManager;
 use OCP\Share\IProviderFactory;
+use OCP\Share\IShare;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -673,6 +674,88 @@ class Manager implements IManager {
 		$this->eventDispatcher->dispatch('share.afterCreate', $afterEvent);
 
 		return $share;
+	}
+
+	/**
+	 * Transfer shares from oldOwner to newOwner. Both old and new owners are uid
+	 * The extraArgs array holds the information of the folder where the share
+	 * target should be shifted to
+	 *
+	 * @param IShare $share
+	 * @param string $oldOwner
+	 * @param string $newOwner
+	 * @param array $extraArgs
+	 * @throws \Exception
+	 */
+	public function transferShares(IShare $share, $oldOwner, $newOwner, $extraArgs = []) {
+		if ($oldOwner === $newOwner) {
+			throw new \Exception('No point in transferring to same user');
+		}
+
+		/**
+		 * If the share was already shared with new owner, then we can delete it
+		 */
+		if ($share->getSharedWith() === $newOwner) {
+			// Unmount the shares before deleting, so we don't try to get the storage later on.
+			$shareMountPoint = $this->mountManager->find('/' . $newOwner . '/files' . $share->getTarget());
+			if ($shareMountPoint) {
+				$this->mountManager->removeMount($shareMountPoint->getMountPoint());
+			}
+			$this->deleteShare($share);
+		} else {
+			$sharedWith = $share->getSharedWith();
+			if (!isset($extraArgs['finalTarget'])) {
+				throw new \Exception('finalTarget is not set');
+			}
+
+			$targetFile = '/' . rtrim(basename($extraArgs['finalTarget']), '/') . '/' . ltrim(basename($share->getTarget()), '/');
+			/**
+			 * Scenario where share is made by old owner to a user different
+			 * from new owner
+			 */
+			if (($sharedWith !== null) && ($sharedWith !== $oldOwner) && ($sharedWith !== $newOwner)) {
+				$sharedBy = $share->getSharedBy();
+				$sharedOwner = $share->getShareOwner();
+				//The origin of the share now has to be the destination user.
+				if (($sharedBy === $oldOwner) && ($sharedOwner === $oldOwner)) {
+					$share->setSharedBy($newOwner);
+					$share->setShareOwner($newOwner);
+					$share->setTarget($targetFile);
+				}
+				$this->updateShare($share);
+			} else {
+				if ($share->getShareOwner() === $oldOwner) {
+					$share->setShareOwner($newOwner);
+				}
+				if ($share->getSharedBy() === $oldOwner) {
+					$share->setSharedBy($newOwner);
+				}
+			}
+			/*
+			 * If the share is already moved then updateShare would cause exception
+			 * This can happen if the folder is shared and file(s) inside the folder
+			 * has shares, for example public link
+			 */
+			if ($share->getShareType() === \OCP\Share::SHARE_TYPE_LINK) {
+				$sharePath = ltrim($share->getNode()->getPath(), '/');
+				if (strpos($sharePath, $extraArgs['finalTarget']) !== false) {
+					/**
+					 * Create a new share and update the share with the
+					 * details from old share.
+					 */
+					$token = $share->getToken();
+					$share->setTarget($targetFile);
+					if (($share->getSharedBy() === $share->getShareOwner()) && ($share->getSharedWith() === null)) {
+						$share = $this->createShare($share);
+					}
+					$share->setToken($token);
+				} else {
+					throw new \Exception('The path is not found in share');
+				}
+			}
+
+			$this->updateShare($share);
+		}
 	}
 
 	/**
