@@ -828,12 +828,16 @@ class Session implements IUserSession, Emitter {
 	 */
 	public function tryAuthModuleLogin(IRequest $request) {
 		foreach ($this->getAuthModules(false) as $authModule) {
-			$user = $authModule->auth($request);
-			if ($user !== null) {
-				$uid = $user->getUID();
-				$password = $authModule->getUserPassword($request);
-				$this->createSessionToken($request, $uid, $uid, $password);
-				return $this->loginUser($user, $password);
+			try {
+				$user = $authModule->auth($request);
+				if ($user !== null) {
+					$uid = $user->getUID();
+					$password = $authModule->getUserPassword($request);
+					$this->createSessionToken($request, $uid, $uid, $password);
+					return $this->loginUser($user, $password);
+				}
+			} catch (Exception $ex) {
+				return false;
 			}
 		}
 
