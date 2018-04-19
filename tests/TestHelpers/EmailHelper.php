@@ -45,7 +45,7 @@ class EmailHelper {
 		);
 		$response = $client->send($request);
 
-		$json = json_decode($response->getBody()->getContents());
+		$json = \json_decode($response->getBody()->getContents());
 		return $json;
 	}
 	/**
@@ -62,9 +62,9 @@ class EmailHelper {
 		foreach (self::getEmails($mailhogUrl)->items as $item) {
 			$expectedEmail = $item->To[0]->Mailbox . "@" . $item->To[0]->Domain;
 			if ($expectedEmail === $address) {
-				$body = str_replace(
+				$body = \str_replace(
 					"\r\n", "\n",
-					quoted_printable_decode($item->Content->Body)
+					\quoted_printable_decode($item->Content->Body)
 				);
 				return $body;
 			}

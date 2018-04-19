@@ -44,7 +44,7 @@ class WebUIPersonalSecuritySettingsContext extends RawMinkContext implements Con
 		PersonalSecuritySettingsPage $personalSecuritySettingsPage
 	) {
 		$this->personalSecuritySettingsPage = $personalSecuritySettingsPage;
-		$this->appName = substr(str_shuffle($this->strForAppName), 0, 8);
+		$this->appName = \substr(\str_shuffle($this->strForAppName), 0, 8);
 	}
 
 	/**
@@ -95,7 +95,7 @@ class WebUIPersonalSecuritySettingsContext extends RawMinkContext implements Con
 		);
 
 		PHPUnit_Framework_Assert::assertEquals(
-			1, preg_match(
+			1, \preg_match(
 				'/(([A-Z]){5}-){3}([A-Z]){5}/', $result[1]->getValue()
 			)
 		);

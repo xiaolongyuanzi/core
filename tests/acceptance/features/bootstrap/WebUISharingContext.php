@@ -222,7 +222,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 			$name, $this->getSession()
 		);
 		$publicShareTab = $this->sharingDialog->openPublicShareTab();
-		if (!is_null($settings)) {
+		if (!\is_null($settings)) {
 			$settingsArray = $settings->getRowsHash();
 			if (!isset($settingsArray['name'])) {
 				$settingsArray['name'] = null;
@@ -247,7 +247,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 				$settingsArray ['expiration'],
 				$settingsArray ['email']
 			);
-			if (!is_null($settingsArray['name'])) {
+			if (!\is_null($settingsArray['name'])) {
 				PHPUnit_Framework_Assert::assertSame(
 					$settingsArray ['name'], $linkName,
 					"set and retrieved public link names are not the same"
@@ -313,7 +313,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 * @return void
 	 */
 	public function theUserAcceptsTheOfferedRemoteShares() {
-		foreach (array_reverse($this->filesPage->getOcDialogs()) as $ocDialog) {
+		foreach (\array_reverse($this->filesPage->getOcDialogs()) as $ocDialog) {
 			$ocDialog->accept($this->getSession());
 		}
 	}
@@ -327,11 +327,11 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 * @return void
 	 */
 	public function setMinCharactersForAutocomplete($minCharacters) {
-		if (is_null($this->oldMinCharactersForAutocomplete)) {
+		if (\is_null($this->oldMinCharactersForAutocomplete)) {
 			$oldMinCharactersForAutocomplete = SetupHelper::runOcc(
 				['config:system:get', 'user.search_min_length']
 			)['stdOut'];
-			$this->oldMinCharactersForAutocomplete = trim(
+			$this->oldMinCharactersForAutocomplete = \trim(
 				$oldMinCharactersForAutocomplete
 			);
 		}
@@ -353,7 +353,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 * @return void
 	 */
 	public function theUserDeclinesTheOfferedRemoteShares() {
-		foreach (array_reverse($this->filesPage->getOcDialogs()) as $ocDialog) {
+		foreach (\array_reverse($this->filesPage->getOcDialogs()) as $ocDialog) {
 			$ocDialog->clickButton($this->getSession(), 'Cancel');
 		}
 	}
@@ -364,8 +364,8 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 * @return void
 	 */
 	public function thePublicAccessesTheLastCreatedPublicLinkUsingTheWebUI() {
-		$lastCreatedLink = end($this->createdPublicLinks);
-		$path = str_replace(
+		$lastCreatedLink = \end($this->createdPublicLinks);
+		$path = \str_replace(
 			$this->featureContext->getBaseUrl(),
 			"",
 			$lastCreatedLink['url']
@@ -432,12 +432,12 @@ class WebUISharingContext extends RawMinkContext implements Context {
 		$createdGroups = $this->sharingDialog->groupStringsToMatchAutoComplete(
 			$this->featureContext->getCreatedGroups()
 		);
-		$usersAndGroups = array_merge(
+		$usersAndGroups = \array_merge(
 			$this->featureContext->getCreatedUserDisplayNames(),
 			$createdGroups
 		);
 		foreach ($usersAndGroups as $expectedUserOrGroup) {
-			if (strpos($expectedUserOrGroup, $requiredString) !== false
+			if (\strpos($expectedUserOrGroup, $requiredString) !== false
 				&& $expectedUserOrGroup !== $notToBeListed
 				&& $expectedUserOrGroup !== $this->featureContext->getCurrentUser()
 			) {
@@ -562,7 +562,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 				'could not share with \'' . $shareWith . '\''
 			];
 			foreach ($possibleMessages as $message) {
-				$foundMessage = strpos($e->getMessage(), $message);
+				$foundMessage = \strpos($e->getMessage(), $message);
 				if ($foundMessage !== false) {
 					break;
 				}
@@ -611,7 +611,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	public function tearDownScenario() {
 		if ($this->oldMinCharactersForAutocomplete === "") {
 			SetupHelper::runOcc(['config:system:delete', 'user.search_min_length']);
-		} elseif (!is_null($this->oldMinCharactersForAutocomplete)) {
+		} elseif (!\is_null($this->oldMinCharactersForAutocomplete)) {
 			SetupHelper::runOcc(
 				[
 					'config:system:set',

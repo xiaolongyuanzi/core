@@ -30,13 +30,13 @@ class PostgreSQL extends AbstractDatabase {
 	public $dbprettyname = 'PostgreSQL';
 
 	public function setupDatabase($username) {
-		$e_host = addslashes($this->dbHost);
-		$e_user = addslashes($this->dbUser);
-		$e_password = addslashes($this->dbPassword);
+		$e_host = \addslashes($this->dbHost);
+		$e_user = \addslashes($this->dbUser);
+		$e_password = \addslashes($this->dbPassword);
 
 		// Fix database with port connection
-		if(strpos($e_host, ':')) {
-			list($e_host, $port)=explode(':', $e_host, 2);
+		if(\strpos($e_host, ':')) {
+			list($e_host, $port)=\explode(':', $e_host, 2);
 		} else {
 			$port=false;
 		}
@@ -46,7 +46,7 @@ class PostgreSQL extends AbstractDatabase {
 		$connection = @pg_connect($connection_string);
 		if(!$connection) {
 			// Try if we can connect to the DB with the specified name
-			$e_dbname = addslashes($this->dbName);
+			$e_dbname = \addslashes($this->dbName);
 			$connection_string = "host='$e_host' dbname='$e_dbname' user='$e_user' port='$port' password='$e_password'";
 			$connection = @pg_connect($connection_string);
 
@@ -85,14 +85,14 @@ class PostgreSQL extends AbstractDatabase {
 		$this->dbUser = $systemConfig->getValue('dbuser');
 		$this->dbPassword = $systemConfig->getValue('dbpassword');
 
-		$e_host = addslashes($this->dbHost);
-		$e_dbname = addslashes($this->dbName);
-		$e_user = addslashes($this->dbUser);
-		$e_password = addslashes($this->dbPassword);
+		$e_host = \addslashes($this->dbHost);
+		$e_dbname = \addslashes($this->dbName);
+		$e_user = \addslashes($this->dbUser);
+		$e_password = \addslashes($this->dbPassword);
 
         	// Fix database with port connection
-		if(strpos($e_host, ':')) {
-			list($e_host, $port)=explode(':', $e_host, 2);
+		if(\strpos($e_host, ':')) {
+			list($e_host, $port)=\explode(':', $e_host, 2);
 		} else {
 			$port=false;
 		}

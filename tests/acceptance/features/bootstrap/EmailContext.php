@@ -50,7 +50,7 @@ class EmailContext implements Context, SnippetAcceptingContext {
 	 * @return void
 	 */
 	public function assertThatEmailContains($address, PyStringNode $content) {
-		$expectedContent = str_replace("\r\n", "\n", $content->getRaw());
+		$expectedContent = \str_replace("\r\n", "\n", $content->getRaw());
 		PHPUnit_Framework_Assert::assertContains(
 			$expectedContent,
 			EmailHelper::getBodyOfLastEmail($this->mailhogUrl, $address)
@@ -65,11 +65,11 @@ class EmailContext implements Context, SnippetAcceptingContext {
 	 * @return void
 	 */
 	public function setUpScenario(BeforeScenarioScope $scope) {
-		$mailhogHost = getenv('MAILHOG_HOST');
+		$mailhogHost = \getenv('MAILHOG_HOST');
 		if ($mailhogHost === false) {
 			$mailhogHost = "127.0.0.1";
 		}
-		$mailhogPort = getenv('MAILHOG_PORT');
+		$mailhogPort = \getenv('MAILHOG_PORT');
 		if ($mailhogPort === false) {
 			$mailhogPort = "8025";
 		}

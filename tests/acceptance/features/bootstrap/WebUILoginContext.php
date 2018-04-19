@@ -178,7 +178,7 @@ class WebUILoginContext extends RawMinkContext implements Context {
 		$this->expectedPage = $this->webUIGeneralContext->loginAs(
 			$username,
 			$password,
-			str_replace(' ', '', ucwords($page)) . 'Page'
+			\str_replace(' ', '', \ucwords($page)) . 'Page'
 		);
 	}
 
@@ -197,10 +197,10 @@ class WebUILoginContext extends RawMinkContext implements Context {
 		// The capturing groups of the regex include the quotes at each
 		// end of the captured string, so trim them.
 		if ($username !== "") {
-			$username = trim($username, $username[0]);
+			$username = \trim($username, $username[0]);
 		}
 		if ($password !== "") {
-			$password = trim($password, $password[0]);
+			$password = \trim($password, $password[0]);
 		}
 		$this->theUserBrowsesToTheLoginPage();
 		if ($should) {
@@ -252,7 +252,7 @@ class WebUILoginContext extends RawMinkContext implements Context {
 		$content = EmailHelper::getBodyOfLastEmail(
 			$this->emailContext->getMailhogUrl(), $emailAddress
 		);
-		preg_match(
+		\preg_match(
 			'/Use the following link to reset your password: (http.*user1)/',
 			$content, $matches
 		);
